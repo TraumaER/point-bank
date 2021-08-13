@@ -6,10 +6,11 @@ This applications simulates the ability to earn, spend, and get the balance of p
 
 ### Git
 
-Make sure that Git is installed on your system. Running `git config -l` will list your git configuration
-if it is installed.
+Make sure that Git is installed on your system. Running `git config -l` will list your git
+configuration if it is installed.
 
-If not, follow the instructions on the download page for your Operating System at https://git-scm.com/downloads
+If not, follow the instructions on the download page for your Operating System
+at https://git-scm.com/downloads
 
 ### Gradle
 
@@ -44,8 +45,9 @@ OpenJDK 64-Bit Server VM Corretto-11.0.12.7.1 (build 11.0.12+7-LTS, mixed mode)
 
 ## Cloning the Repo
 
-From a terminal or command prompt run `git clone https://github.com/TraumaER/point-bank.git` this will clone the repository 
-into a directory called `point-bank` rooted at the current working directory of your terminal window.
+From a terminal or command prompt run `git clone https://github.com/TraumaER/point-bank.git` this
+will clone the repository into a directory called `point-bank` rooted at the current working
+directory of your terminal window.
 
 ## Running the application
 
@@ -53,21 +55,38 @@ These instructions will be focused on running the application via the terminal.
 
 1. Open a new terminal or command prompt to the project directory.
 2. Confirm your java version is 11+ `java -version`
-   * Perform instructions above if this is not the case
+    * Perform instructions above if this is not the case
 3. Run one of the following commands
-   * **Windows Command Prompt**: `gradlew.bat bootRun`
-   * **Linux/Mac Terminal**: `./gradlew bootRun`
-     * this will also work if you are running a MinTTY terminal on Windows. 
+    * **Windows Command Prompt**: `gradlew.bat bootRun`
+    * **Linux/Mac Terminal**: `./gradlew bootRun`
+        * this will also work if you are running a MinTTY terminal on Windows.
 
 That's it! The application should now be running in your terminal window and accessible
 from `localhost:8080` with the following API endpoints.
 
-If the logs state it failed to start and exited because the port `8080` was already taken. Stop any processes
-that are running on that port and try again.
+If the logs state it failed to start and exited because the port `8080` was already taken. Stop any
+processes that are running on that port and try again.
 
 ## API Endpoints
 
-### `GET /balances`
+### `GET /my-balance`
+
+Returns the current total remaining balance without payer details
+
+#### Response
+
+```typescript
+type Integer = number
+type MyBalance = {
+  points: Integer
+}
+```
+
+| Prop | Type | Description |
+| ---- | ---- | ----------- |
+| `points` | `Integer` | Number of points remaining in the system. |
+
+### `GET /payer-balances`
 
 Returns all point balances for existing Payers. If no payers exist an empty object will be returned.
 
@@ -81,6 +100,11 @@ type Balances = {
   [key: string]: Integer
 }
 ```
+
+| Prop | Type | Description |
+| ---- | ---- | ----------- |
+| `{key}` | `String` | Display name of the payer. |
+| `points` | `Integer` | Number of points assigned to that payer. |
 
 _Example Response_
 
@@ -168,7 +192,7 @@ _Example Response_
 
 A handful of integration tests have been written to ensure the `BankService` performs its duties.
 
-To perform these tests ensure that your setup is configured to run the application. Note the application does
-not need to be running to run the tests.
+To perform these tests ensure that your setup is configured to run the application. Note the
+application does not need to be running to run the tests.
 
 `./gradlew test` on Linux or Mac, `gradlew.bat test` on Windows

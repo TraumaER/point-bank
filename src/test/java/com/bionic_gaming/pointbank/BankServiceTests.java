@@ -92,4 +92,15 @@ class BankServiceTests {
         .isInstanceOf(IllegalArgumentException.class);
   }
 
+  @Test
+  void myBalanceRespondsCorrectly() {
+    bankService.addTransaction(new TransactionRequest("baz", 100, ZonedDateTime.now()));
+    assertThat(bankService.getMyBalance().getPoints()).isEqualTo(100);
+    bankService.addTransaction(new TransactionRequest("foo", 100, ZonedDateTime.now()));
+    assertThat(bankService.getMyBalance().getPoints()).isEqualTo(200);
+    bankService.spendPoints(new SpendRequest(50));
+    assertThat(bankService.getMyBalance().getPoints()).isEqualTo(150);
+
+  }
+
 }

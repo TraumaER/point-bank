@@ -1,5 +1,6 @@
 package com.bionic_gaming.pointbank.controllers;
 
+import com.bionic_gaming.pointbank.api.models.MyBalanceResponse;
 import com.bionic_gaming.pointbank.api.models.SpendTransaction;
 import com.bionic_gaming.pointbank.api.models.SpendRequest;
 import com.bionic_gaming.pointbank.api.models.TransactionRequest;
@@ -26,7 +27,12 @@ public class BankController {
     return "Point Bank Service is running...";
   }
 
-  @GetMapping("/balances")
+  @GetMapping("/my-balance")
+  MyBalanceResponse getMyBalance() {
+    return bankService.getMyBalance();
+  }
+
+  @GetMapping("/payer-balances")
   Map<String, Integer> allPayerBalances() {
     return bankService.getPayerPointBalances();
   }

@@ -1,5 +1,6 @@
 package com.bionic_gaming.pointbank.services;
 
+import com.bionic_gaming.pointbank.api.models.MyBalanceResponse;
 import com.bionic_gaming.pointbank.api.models.SpendRequest;
 import com.bionic_gaming.pointbank.api.models.SpendTransaction;
 import com.bionic_gaming.pointbank.api.models.TransactionRequest;
@@ -129,6 +130,15 @@ public class BankService {
     }
 
     return spentPoints;
+  }
+
+  public MyBalanceResponse getMyBalance() {
+    List<Transaction> transactions = transactionRepository.findAllByPointsGreaterThanOrderByTimestampAsc(
+        0);
+    List<Transaction> negativeTransactions = transactionRepository.findAllByPointsLessThanOrderByTimestampAsc(
+        0);
+
+    return new MyBalanceResponse(sumOfPoints(transactions) + sumOfPoints(negativeTransactions));
   }
 
   /**
