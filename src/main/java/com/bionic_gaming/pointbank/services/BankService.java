@@ -1,7 +1,7 @@
 package com.bionic_gaming.pointbank.services;
 
-import com.bionic_gaming.pointbank.api.models.PayerBalance;
 import com.bionic_gaming.pointbank.api.models.SpendRequest;
+import com.bionic_gaming.pointbank.api.models.SpendTransaction;
 import com.bionic_gaming.pointbank.api.models.TransactionRequest;
 import com.bionic_gaming.pointbank.database.entities.Payer;
 import com.bionic_gaming.pointbank.database.entities.Transaction;
@@ -11,9 +11,9 @@ import com.google.common.base.Preconditions;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -32,18 +32,17 @@ public class BankService {
   private final PayerRepository payerRepository;
 
   public Map<String, Integer> getPayerPointBalances() {
-    List<Payer> payerRows = payerRepository.findAll();
+    List<Payer> payers = payerRepository.findAllByOrderByNameAsc();
 
-    Map<String, Integer> payerMap = new HashMap<>();
+    Map<String, Integer> payerMap = new TreeMap<>(String::compareToIgnoreCase);
 
-    payerRows.forEach(payer -> {
-
+    for (Payer payer : payers) {
       List<Transaction> transactions = transactionRepository.findAllByPayer(payer);
 
       int total = sumOfPoints(transactions);
 
       payerMap.put(payer.getDisplayName(), total);
-    });
+    }
 
     return payerMap;
   }
@@ -66,7 +65,7 @@ public class BankService {
     transactionRepository.save(transaction);
   }
 
-  public List<PayerBalance> spendPoints(SpendRequest request) {
+  public List<SpendTransaction> spendPoints(SpendRequest request) {
     Preconditions.checkArgument(request.getPoints() > 0, "'points' must be greater than 0");
 
     int remainingToSpend = request.getPoints();
@@ -79,9 +78,10 @@ public class BankService {
     int totalPointsRemaining = sumOfPoints(transactions) + sumOfPoints(negativeTransactions);
 
     Preconditions.checkArgument(remainingToSpend <= totalPointsRemaining,
-        "attempting to spend more points than are remaining");
+        "Points requested are greater than what are remaining; { requested=" + remainingToSpend
+            + ", remaining=" + totalPointsRemaining + " }");
 
-    List<PayerBalance> spentPoints = new ArrayList<>();
+    List<SpendTransaction> spentPoints = new ArrayList<>();
 
     for (Transaction transaction : transactions) {
 
@@ -109,7 +109,7 @@ public class BankService {
         transactionRepository.save(transaction);
 
         // add to response
-        spentPoints.add(PayerBalance.builder().payer(transaction.getPayer().getDisplayName())
+        spentPoints.add(SpendTransaction.builder().payer(transaction.getPayer().getDisplayName())
             .points(transactionBalance * -1).build());
         // reduce remaining
         remainingToSpend -= transactionBalance;
@@ -122,7 +122,7 @@ public class BankService {
         transaction.getNegatingTransactions().add(negate);
         transactionRepository.save(transaction);
 
-        spentPoints.add(PayerBalance.builder().payer(transaction.getPayer().getDisplayName())
+        spentPoints.add(SpendTransaction.builder().payer(transaction.getPayer().getDisplayName())
             .points(remainingToSpend * -1).build());
         remainingToSpend = 0;
       }
@@ -133,6 +133,7 @@ public class BankService {
 
   /**
    * Helper function to sum up the points in a collection of transactions
+   *
    * @param transactions
    * @return int
    */

@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Builder
 @Data
-public class PayerBalance {
+public class SpendTransaction {
   private final String payer;
   private final int points;
 }

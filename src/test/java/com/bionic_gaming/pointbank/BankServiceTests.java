@@ -1,9 +1,10 @@
 package com.bionic_gaming.pointbank;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.bionic_gaming.pointbank.api.models.PayerBalance;
 import com.bionic_gaming.pointbank.api.models.SpendRequest;
+import com.bionic_gaming.pointbank.api.models.SpendTransaction;
 import com.bionic_gaming.pointbank.api.models.TransactionRequest;
 import com.bionic_gaming.pointbank.services.BankService;
 import java.time.ZonedDateTime;
@@ -77,10 +78,18 @@ class BankServiceTests {
   void spreadsPointsAcrossTransactions() {
     loadTransactions();
     assertThat(bankService.getPayerPointBalances().toString()).isEqualTo("{bar=1000, foo=700}");
-    List<PayerBalance> response = bankService.spendPoints(new SpendRequest(400));
+    List<SpendTransaction> response = bankService.spendPoints(new SpendRequest(400));
     assertThat(bankService.getPayerPointBalances().toString()).isEqualTo("{bar=800, foo=500}");
     assertThat(response.toString()).isEqualTo(
-        "[PayerBalance(payer=foo, points=-200), PayerBalance(payer=bar, points=-200)]");
+        "[SpendTransaction(payer=foo, points=-200), SpendTransaction(payer=bar, points=-200)]");
+  }
+
+  @Test
+  void tryingToSpendMoreThanAvailableThrowsException() {
+    bankService.addTransaction(new TransactionRequest("baz", 100, ZonedDateTime.now()));
+
+    assertThatThrownBy(() -> bankService.spendPoints(new SpendRequest(500)))
+        .isInstanceOf(IllegalArgumentException.class);
   }
 
 }
