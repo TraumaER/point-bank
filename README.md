@@ -67,11 +67,22 @@ from `localhost:8080` with the following API endpoints.
 If the logs state it failed to start and exited because the port `8080` was already taken. Stop any
 processes that are running on that port and try again.
 
+## Sending Requests
+
 ## API Endpoints
 
 ### `GET /my-balance`
 
 Returns the current total remaining balance without payer details
+
+#### Request
+
+_Example curl command_
+
+```shell
+curl --request GET \
+  --url http://localhost:8080/my-balance
+```
 
 #### Response
 
@@ -87,6 +98,7 @@ type MyBalance = {
 | `points` | `Integer` | Number of points remaining in the system. |
 
 _Example Response_
+
 ```json
 {
   "points": 1800
@@ -96,6 +108,14 @@ _Example Response_
 ### `GET /payer-balances`
 
 Returns all point balances for existing Payers. If no payers exist an empty object will be returned.
+
+#### Request
+
+_Example curl command_
+```shell
+curl --request GET \
+  --url http://localhost:8080/payer-balances
+```
 
 #### Response
 
@@ -138,6 +158,19 @@ type TransactionRequest = {
 }
 ```
 
+_Example curl command_
+
+```shell
+curl --request POST \
+  --url http://localhost:8080/add-transaction \
+  --header 'Content-Type: application/json' \
+  --data '{
+	"payer": "Target",
+	"points": 1000,
+	"timestamp": "2020-12-25T15:00:00Z"
+}'
+```
+
 | Prop | Type | Description |
 | ---- | ---- | ----------- |
 | `payer` | `String` | Display name for the payer of transaction. |
@@ -167,6 +200,17 @@ type SpendRequest = {
 | ---- | ---- | ----------- |
 | `points` | `Integer` | Number of points to spend; Must be greater than `0` |
 
+_Example curl command_
+
+```shell
+curl --request POST \
+  --url http://localhost:8080/spend \
+  --header 'Content-Type: application/json' \
+  --data '{
+	"points": 500
+}'
+```
+
 #### Response
 
 ```typescript
@@ -194,6 +238,12 @@ _Example Response_
   }
 ]
 ```
+
+## Sending Requests
+
+Included in the API docs are example `curl` commands to run. If you prefer a more GUI approach to 
+making api calls. I recommend Insomnia (https://insomnia.rest/). It is like Postman (https://www.postman.com/), but
+is Open Source and there are no requirements to send your queries out to the cloud for storage.
 
 ## Running Tests
 
