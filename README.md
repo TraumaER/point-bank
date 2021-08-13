@@ -86,6 +86,13 @@ type MyBalance = {
 | ---- | ---- | ----------- |
 | `points` | `Integer` | Number of points remaining in the system. |
 
+_Example Response_
+```json
+{
+  "points": 1800
+}
+```
+
 ### `GET /payer-balances`
 
 Returns all point balances for existing Payers. If no payers exist an empty object will be returned.
