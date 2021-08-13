@@ -1,10 +1,8 @@
 package com.bionic_gaming.pointbank.api.models;
 
-import lombok.Builder;
-import lombok.Value;
+import lombok.Data;
 
-@Builder
-@Value
+@Data
 public class SpendRequest {
 
   int points;

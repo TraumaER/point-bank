@@ -1,9 +1,9 @@
 package com.bionic_gaming.pointbank.database;
 
-import com.bionic_gaming.pointbank.database.entities.Transaction;
 import com.bionic_gaming.pointbank.database.entities.Payer;
-import com.bionic_gaming.pointbank.database.repositories.TransactionRepository;
+import com.bionic_gaming.pointbank.database.entities.Transaction;
 import com.bionic_gaming.pointbank.database.repositories.PayerRepository;
+import com.bionic_gaming.pointbank.database.repositories.TransactionRepository;
 import java.time.ZonedDateTime;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
@@ -15,16 +15,28 @@ import org.springframework.context.annotation.Configuration;
 public class LoadDatabase {
 
   @Bean
-  CommandLineRunner initDatabase(TransactionRepository transactionRepository, PayerRepository payerRepository) {
+  CommandLineRunner initDatabase(TransactionRepository transactionRepository,
+      PayerRepository payerRepository) {
     return args -> {
       Payer target = new Payer("Target");
       Payer walmart = new Payer("WalMart");
 
-      log.info("Preloading " + payerRepository.save(target));
-      log.info("Preloading " + payerRepository.save(walmart));
-      log.info("Preloading " + transactionRepository.save(new Transaction(target, 200, ZonedDateTime.now())));
-      log.info("Preloading " + transactionRepository.save(new Transaction(target, 300, ZonedDateTime.now())));
-      log.info("Preloading " + transactionRepository.save(new Transaction(walmart, 300, ZonedDateTime.now())));
+      payerRepository.save(target);
+      payerRepository.save(walmart);
+      transactionRepository.save(
+          new Transaction(target, 500, ZonedDateTime.parse("2021-01-25T15:00:00Z")));
+      transactionRepository.save(
+          new Transaction(target, 500, ZonedDateTime.parse("2020-12-25T15:00:00Z")));
+      transactionRepository.save(
+          new Transaction(walmart, 500, ZonedDateTime.parse("2021-01-05T15:00:00Z")));
+
+      Transaction someTransaction = new Transaction(walmart, 1000, ZonedDateTime.now());
+
+      Transaction someNegativeTransaction = new Transaction(walmart, -500, ZonedDateTime.now());
+      transactionRepository.save(someNegativeTransaction);
+
+      someTransaction.getNegatingTransactions().add(someNegativeTransaction);
+      transactionRepository.save(someTransaction);
     };
   }
 

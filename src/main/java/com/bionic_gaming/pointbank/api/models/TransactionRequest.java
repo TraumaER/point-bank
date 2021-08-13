@@ -1,11 +1,9 @@
 package com.bionic_gaming.pointbank.api.models;
 
 import java.time.ZonedDateTime;
-import lombok.AllArgsConstructor;
-import lombok.Value;
+import lombok.Data;
 
-@AllArgsConstructor
-@Value
+@Data
 public class TransactionRequest {
 
   String payer;

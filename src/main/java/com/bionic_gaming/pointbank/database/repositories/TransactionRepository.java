@@ -8,4 +8,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
 
   List<Transaction> findAllByPayer(Payer payer);
+  List<Transaction> findAllByPointsGreaterThanOrderByTimestampAsc(int pointsGreaterThan);
+  List<Transaction> findAllByPointsLessThanOrderByTimestampAsc(int pointsLessThan);
+
+
 }

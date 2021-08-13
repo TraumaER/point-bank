@@ -10,7 +10,7 @@ import com.bionic_gaming.pointbank.database.repositories.TransactionRepository;
 import com.google.common.base.Preconditions;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,24 +31,21 @@ public class BankService {
   @Autowired
   private final PayerRepository payerRepository;
 
-  public List<PayerBalance> getPayerPointBalances() {
+  public Map<String, Integer> getPayerPointBalances() {
     List<Payer> payerRows = payerRepository.findAll();
 
-    Map<Payer, Integer> payerMap = new HashMap<>();
+    Map<String, Integer> payerMap = new HashMap<>();
 
     payerRows.forEach(payer -> {
-      List<Transaction> transactionRows = transactionRepository.findAllByPayer(payer);
-      Integer pointTotal = transactionRows.stream().map(Transaction::getPoints)
-          .reduce(0, Integer::sum);
-      payerMap.put(payer, pointTotal);
+
+      List<Transaction> transactions = transactionRepository.findAllByPayer(payer);
+
+      int total = sumOfPoints(transactions);
+
+      payerMap.put(payer.getDisplayName(), total);
     });
 
-    List<PayerBalance> payerBalances = new ArrayList<>();
-
-    payerMap.forEach((payer, points) -> payerBalances.add(
-        PayerBalance.builder().payer(payer.getDisplayName()).points(points).build()));
-
-    return payerBalances;
+    return payerMap;
   }
 
   public void addTransaction(TransactionRequest request) {
@@ -70,6 +67,77 @@ public class BankService {
   }
 
   public List<PayerBalance> spendPoints(SpendRequest request) {
-    return Collections.emptyList();
+    Preconditions.checkArgument(request.getPoints() > 0, "'points' must be greater than 0");
+
+    int remainingToSpend = request.getPoints();
+
+    List<Transaction> transactions = transactionRepository.findAllByPointsGreaterThanOrderByTimestampAsc(
+        0);
+    List<Transaction> negativeTransactions = transactionRepository.findAllByPointsLessThanOrderByTimestampAsc(
+        0);
+
+    int totalPointsRemaining = sumOfPoints(transactions) + sumOfPoints(negativeTransactions);
+
+    Preconditions.checkArgument(remainingToSpend <= totalPointsRemaining,
+        "attempting to spend more points than are remaining");
+
+    List<PayerBalance> spentPoints = new ArrayList<>();
+
+    for (Transaction transaction : transactions) {
+
+      if (transaction.isFullySpent()) {
+        continue;
+      }
+
+      if (remainingToSpend == 0) {
+        break;
+      }
+
+      int transactionBalance =
+          transaction.getPoints() + sumOfPoints(transaction.getNegatingTransactions());
+
+      if (remainingToSpend >= transactionBalance) {
+        // create negation transaction
+        Transaction negate = new Transaction(transaction.getPayer(),
+            transactionBalance * -1, ZonedDateTime.now());
+
+        transactionRepository.save(negate);
+        // add negation transaction to current transaction
+        transaction.getNegatingTransactions().add(negate);
+        transaction.setFullySpent(true);
+
+        transactionRepository.save(transaction);
+
+        // add to response
+        spentPoints.add(PayerBalance.builder().payer(transaction.getPayer().getDisplayName())
+            .points(transactionBalance * -1).build());
+        // reduce remaining
+        remainingToSpend -= transactionBalance;
+
+      } else {
+        Transaction negate = new Transaction(transaction.getPayer(),
+            remainingToSpend * -1, ZonedDateTime.now());
+        transactionRepository.save(negate);
+
+        transaction.getNegatingTransactions().add(negate);
+        transactionRepository.save(transaction);
+
+        spentPoints.add(PayerBalance.builder().payer(transaction.getPayer().getDisplayName())
+            .points(remainingToSpend * -1).build());
+        remainingToSpend = 0;
+      }
+    }
+
+    return spentPoints;
+  }
+
+  /**
+   * Helper function to sum up the points in a collection of transactions
+   * @param transactions
+   * @return int
+   */
+  private int sumOfPoints(Collection<Transaction> transactions) {
+    return transactions.stream().map(Transaction::getPoints)
+        .reduce(0, Integer::sum);
   }
 }

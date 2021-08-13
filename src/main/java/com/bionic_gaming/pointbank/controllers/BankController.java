@@ -1,9 +1,11 @@
 package com.bionic_gaming.pointbank.controllers;
 
 import com.bionic_gaming.pointbank.api.models.PayerBalance;
+import com.bionic_gaming.pointbank.api.models.SpendRequest;
 import com.bionic_gaming.pointbank.api.models.TransactionRequest;
 import com.bionic_gaming.pointbank.services.BankService;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,12 +21,17 @@ public class BankController {
   private final BankService bankService;
 
   @GetMapping("/balances")
-  List<PayerBalance> allPayerBalances() {
+  Map<String, Integer> allPayerBalances() {
     return bankService.getPayerPointBalances();
   }
 
   @PostMapping("/add-transaction")
   void addTransaction(@RequestBody TransactionRequest request) {
     bankService.addTransaction(request);
+  }
+
+  @PostMapping("/spend")
+  List<PayerBalance> spendPoints(@RequestBody SpendRequest request) {
+    return bankService.spendPoints(request);
   }
 }
