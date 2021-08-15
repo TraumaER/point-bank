@@ -61,7 +61,7 @@ These instructions will be focused on running the application via the terminal.
     * **Linux/Mac Terminal**: `./gradlew bootRun`
         * this will also work if you are running a MinTTY terminal on Windows.
 
-**Note**: If you receive a permission denied on either `./gradlew bootRun` or `gradlew.bat` you may need to run `chmod +x ./gradlew`
+**Note**: If you receive a permission denied on either `./gradlew bootRun` or `gradlew.bat` you may need to run `chmod +x ./gradlew` or `chmod +x ./gradlew.bat`
 
 That's it! The application should now be running in your terminal window and accessible
 from `localhost:8080` with the following API endpoints.
